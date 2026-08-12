@@ -1,3 +1,15 @@
+# 자료 파일 (다운로드 스크립트로 받는다)
+data/*.csv
+data/*.rds
+data/*.xlsx
+!data/README.md
+
+# R 작업 파일
+.Rproj.user/
+.Rhistory
+.RData
+outputs/*.rds
+
 # History files
 .Rhistory
 .Rapp.history
