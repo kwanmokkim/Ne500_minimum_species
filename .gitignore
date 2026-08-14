@@ -9,8 +9,6 @@ data/*.rds
 # 산출물
 outputs/*
 !outputs/.gitkeep
-figures/*
-!figures/.gitkeep
 
 # R 작업 파일
 .Rproj.user/
