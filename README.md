@@ -5,8 +5,7 @@ A.4 — *the proportion of populations with an effective population size greater
 than 500* — at an acceptable level of accuracy?**
 
 You do not need to run anything in this repository. Take the formula, or read the
-answer off the table below. n0 is 122.34 and plugging in your species size (e.g., N) 
-will give you the minimum species size (n) for Ne500 monitoring.
+answer off the table below.
 
 ---
 
@@ -69,10 +68,10 @@ the more stable choice when comparing taxa of different sizes.
 ![Validation](figures/fig4a_validation.png)
 
 Points are obtained by sampling directly from the raw data with **no formula
-involved**, following the procedure of Hébert et al.. Build a species pool of
+involved**, following the procedure of Hébert et al.: build a species pool of
 size `N`, treat its mean as the true value, survey `n` of its species, and find
-the smallest `n` at which the error falls within tolerance. The red line is the
-formula and dashed gray line is the asymptote. 
+the smallest `n` at which the error falls within tolerance. The line is the
+formula.
 
 Fifty pool sizes from 30 to 5 000, three independent runs. Mean difference −0.4
 to −0.7 species; 96–98 % of points agree within 2 species. The small offset is
@@ -82,7 +81,7 @@ the rounding up, which adds 0.52 species on average.
 
 ---
 
-## Why this exists
+## Why this repository exists
 
 Hébert, Pollock and Hoban (2026, *Biological Conservation* 317: 111824) is the
 only study that answers how much monitoring the Ne > 500 indicator needs. Their
@@ -102,6 +101,62 @@ author.
 
 ---
 
+## Why a formula exists at all
+
+Hébert et al. answered this question by simulation: draw species at random,
+compute the indicator, repeat 15 million times, and see how far the answer strays.
+That is the right way to attack a problem whose answer is unknown. But the
+question they were attacking at this stage turns out to have a known answer.
+
+The reason is what the indicator is. At the country level it is a **mean over
+species** — each species contributes a value between 0 and 1, and the indicator
+averages them. Monitoring only some species is therefore nothing more than
+drawing a sample from a finite population and taking its mean. Stripped of
+ecological content, the procedure is:
+
+| Step in the paper | In sampling terms |
+|---|---|
+| Build a pool of `N` species | population of size `N` |
+| Average all `N` values | population mean `μ` |
+| Monitor `n` of them and average | sample mean `x̄` from a draw of size `n` |
+| Record the departure | \|x̄ − μ\| |
+
+How far a sample mean strays from a population mean is the oldest question in
+survey sampling, and it has an exact answer:
+
+```
+SE = (σ / √n) · √((N − n) / (N − 1))
+```
+
+Two things about this expression matter.
+
+**It needs no assumption about the shape of the distribution.** It is a
+combinatorial identity, exact whether the underlying values are bell-shaped or,
+as here, piled up at zero and one. The second factor is the finite-population
+correction: it shrinks to zero as `n` approaches `N`, which is simply the
+statement that a complete census has no sampling error. This is what makes the
+formula usable for a taxon with 30 species as well as one with 5 000.
+
+**Normality enters at only one point.** The paper's criterion is not stated in
+terms of `SE` but as the mean plus the standard deviation of the absolute error.
+Converting between the two uses constants of the half-normal distribution
+(0.79788 and 0.60281), and those hold only if `x̄` is approximately normal. That
+is what the central limit theorem provides, and it is the one thing that had to
+be checked rather than assumed — the source values are far from normal, so it was
+not obvious that averages of 25 or 50 of them would be. The
+[validation](#the-formula-reproduces-direct-simulation) above confirms that they
+are, and the mechanism is visible directly:
+
+![Central limit theorem](figures/fig2_clt.png)
+
+The raw values (a) are anything but normal. Their averages (b) are, and the
+absolute departures (c) follow the half-normal shape the constants assume.
+
+Once both pieces are in place, the simulation and the formula are computing the
+same quantity, and the formula computes it exactly, in one line, for any `N`.
+
+---
+
 ## Where the numbers come from
 
 **σ, from the data.** The 583 species-level indicator values of Mastretta-Yanes
@@ -113,14 +168,16 @@ this is a measurement rather than an estimate.
 The distribution is strongly skewed: 58.5 % of species score exactly zero and
 18.7 % exactly one.
 
-**k, from the criterion.** The absolute sampling error follows a half-normal
-distribution, whose mean and SD are fixed multiples of the standard error:
-`√(2/π) = 0.79788` and `√(1−2/π) = 0.60281`. The criterion of Hébert et al. is
-their sum, so `k = 1.40069`. No data enters this step.
+**k, from the criterion.** As above, the mean and SD of the absolute error are
+fixed multiples of the standard error: `√(2/π) = 0.79788` and
+`√(1−2/π) = 0.60281`. The criterion of Hébert et al. is their sum, so
+`k = 1.40069`. No data enters this step; a different criterion changes only this
+constant.
 
-**n₀, then the finite-population correction.** Setting `k · SE ≤ T`, with
-`SE = (σ/√n)·√((N−n)/(N−1))`, and solving for `n` gives `n₀ = (kσ/T)²` for an
-infinite pool and `n = n₀N/(N−1+n₀)` for a finite one.
+**n₀, then the finite-population correction.** Setting `k · SE ≤ T` and solving
+for `n` gives `n₀ = (kσ/T)²` for an infinite pool and `n = n₀N/(N−1+n₀)` for a
+finite one. Because `n₀` is an upper bound, the required count saturates near 123
+species however large the pool grows.
 
 ![Requirement as the error curve meets T](figures/fig3_errorcurve.png)
 
@@ -246,14 +303,6 @@ Please cite the two underlying sources:
 > Mastretta-Yanes, A. et al. (2024) Multinational evaluation of genetic diversity
 > indicators for the Kunming-Montreal Global Biodiversity Framework.
 > *Ecology Letters* 27: e14461. Data: https://doi.org/10.5061/dryad.bk3j9kdkm
-
-## Acknowledgements
-
-The R scripts and this README were drafted with the assistance of Claude
-(Anthropic), working from the source paper and its published code. The study
-design, the choice of criterion, the decision to derive a continuous formula, and
-the verification of every result were carried out by the author, who is
-responsible for the final content.
 
 ## Funding
 
