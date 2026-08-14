@@ -43,6 +43,8 @@ bound instead of theirs, use `k = 1.95996`.
 
 ## Read the answer off this table
 
+84% criterion uses the formula developed however, the results match that of Hebert et al. (2026).
+
 | Species pool `N` | `n` (84 % criterion) | % | `n` (95 % criterion) | % |
 |---|---|---|---|---|
 | 25 | 21 | 84 % | 23 | 92 % |
