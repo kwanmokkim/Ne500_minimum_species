@@ -44,6 +44,7 @@ bound instead of theirs, use `k = 1.95996`.
 ## Read the answer off this table
 
 84% criterion uses the formula developed however, the results match that of Hebert et al. (2026).
+If you want less chance of error, you could consider using the 95%.
 
 | Species pool `N` | `n` (84 % criterion) | % | `n` (95 % criterion) | % |
 |---|---|---|---|---|
