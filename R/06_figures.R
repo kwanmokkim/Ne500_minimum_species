@@ -90,13 +90,17 @@ p3 <- ggplot(df3, aes(x = n, y = cihi, colour = N_lab)) +
   geom_hline(yintercept = T_TOLERANCE, colour = col_c,
              linetype = "dashed", linewidth = 0.5) +
   geom_point(data = df3_cross, aes(x = n, y = T_TOLERANCE, colour = N_lab),
-             size = 2.5) +
-  annotate("text", x = 620, y = T_TOLERANCE + 0.006,
+             size = 2.8) +
+  geom_text(data = df3_cross,
+            aes(x = n, y = T_TOLERANCE + 0.011, label = round(n, 0), colour = N_lab),
+            size = 3, show.legend = FALSE) +
+  annotate("text", x = 640, y = T_TOLERANCE + 0.008,
            label = "T = 0.05", size = 3, colour = col_c) +
-  coord_cartesian(xlim = c(0, 700), ylim = c(0, 0.15)) +
+  scale_colour_manual(values = c(col_a, "#2E7D4F", col_b)) +
+  coord_cartesian(xlim = c(0, 720), ylim = c(0, 0.15)) +
   labs(x = "Species surveyed (n)", y = expression(bar(D) + s[D]),
        colour = NULL,
-       title = "Error falls as more species are surveyed; the dot is the requirement") +
+       title = "The requirement is where the error curve meets T") +
   theme_ne500 + theme(legend.position = "bottom")
 
 ggsave(file.path(dir_figures, "fig3_errorcurve.png"), p3,
@@ -120,9 +124,19 @@ p4a <- ggplot() +
              colour = col_a, size = 1.8) +
   geom_hline(yintercept = n0, colour = col_c,
              linetype = "dashed", linewidth = 0.4) +
-  annotate("text", x = 2200, y = n0 - 8,
-           label = sprintf("n0 = %.2f", n0), size = 3, colour = col_c) +
+  # 수식은 plotmath 로 그린다. 유니코드 문자를 쓰면 글꼴에 따라 네모로 나온다.
+  # 주의: 한 수식에 == 는 한 번만 쓸 수 있다. 글자를 섞으려면 paste() 로 감싼다.
+  annotate("text", x = 26, y = 108, hjust = 0, size = 3.6, colour = col_b,
+           parse = TRUE,
+           label = "n == n[0] * N / (N - 1 + n[0])") +
+  annotate("text", x = 26, y = 98, hjust = 0, size = 3.1, colour = col_b,
+           parse = TRUE,
+           label = sprintf("paste(n[0] == (k * sigma / T)^2, '   =   %.2f')", n0)) +
+  annotate("text", x = 26, y = n0 + 5, hjust = 0, size = 3, colour = col_c,
+           parse = TRUE,
+           label = sprintf("paste('asymptote   ', n[0] == %.2f)", n0)) +
   scale_x_log10() +
+  coord_cartesian(ylim = c(15, 138)) +
   labs(x = "Species pool size (N), log scale",
        y = "Species to monitor (n)",
        title = "(a) direct sampling (points) against the formula (line)") +
@@ -166,8 +180,10 @@ df5 <- bind_rows(
 p5 <- ggplot() +
   geom_line(data = df5, aes(x = N, y = y, colour = 기준), linewidth = 0.9) +
   geom_point(data = korea, aes(x = N, y = pct), size = 2) +
-  geom_text(data = korea, aes(x = N, y = pct, label = taxon_en),
-            hjust = -0.15, size = 2.6) +
+  geom_text(data = korea,
+            aes(x = N, y = pct, label = taxon_en,
+                vjust = ifelse(taxon_en == "Amphibian_Reptile", 1.9, -0.9)),
+            hjust = -0.05, size = 2.5) +
   scale_colour_manual(values = c(col_a, col_b)) +
   coord_cartesian(xlim = c(0, 850), ylim = c(0, 100)) +
   labs(x = "Species pool size (N)", y = "Species to monitor (%)",

@@ -1,29 +1,87 @@
 # Ne500 minimum species
 
-A continuous formula for the minimum number of species a country needs to
-monitor in order to report the CBD Headline Indicator A.4 (*proportion of
-populations with an effective population size greater than 500*) at an
-acceptable level of accuracy.
+**How many species must a country monitor to report the CBD Headline Indicator
+A.4 — *the proportion of populations with an effective population size greater
+than 500* — at an acceptable level of accuracy?**
+
+You do not need to run anything in this repository. Take the formula, or read the
+answer off the table below.
+
+---
+
+## The formula
 
 ```
-n = n₀ · N / (N − 1 + n₀)        with  n₀ = (k · σ / T)²  =  122.34
+n = n₀ · N / (N − 1 + n₀)          n₀ = (k · σ / T)²  =  122.34
 ```
 
 | Symbol | Meaning | Value |
 |---|---|---|
-| `N` | species pool size (all species to be represented) | per taxon |
-| `n` | species to monitor | the answer |
+| `N` | species pool size — all species the indicator is meant to represent | your input |
+| `n` | species to monitor | **the answer** |
+| `n₀` | requirement for an infinitely large pool | 122.34 |
 | `σ` | SD of species-level indicator values | 0.394826 |
 | `T` | tolerated deviation on the 0–1 indicator scale | 0.05 |
 | `k` | criterion constant, in units of standard error | 1.40069 |
-| `n₀` | requirement for an infinitely large pool | 122.34 |
 
-`σ` is the only quantity taken from data. `T` is a choice. `k` follows
-mathematically once a criterion is chosen.
+Round `n` up. Rounding down would fall short of the criterion.
+
+`σ` is the only quantity taken from data. `T` is a choice inherited from Hébert
+et al. (2026). `k` follows mathematically once a criterion is chosen: for a 95 %
+bound instead of theirs, use `k = 1.95996`.
 
 ---
 
-## Why this repository exists
+## Read the answer off this table
+
+| Species pool `N` | `n` (84 % criterion) | % | `n` (95 % criterion) | % |
+|---|---|---|---|---|
+| 25 | 21 | 84 % | 23 | 92 % |
+| 50 | 36 | 72 % | 42 | 84 % |
+| 75 | 47 | 63 % | 58 | 77 % |
+| 100 | 56 | 56 % | 71 | 71 % |
+| 150 | 68 | 45 % | 93 | 62 % |
+| 200 | 77 | 38 % | 110 | 55 % |
+| 250 | 83 | 33 % | 123 | 49 % |
+| 300 | 88 | 29 % | 134 | 45 % |
+| 400 | 94 | 24 % | 151 | 38 % |
+| 500 | 99 | 20 % | 163 | 33 % |
+| 750 | 106 | 14 % | 182 | 24 % |
+| 1 000 | 110 | 11 % | 194 | 19 % |
+| 1 500 | 114 | 8 % | 207 | 14 % |
+| 2 000 | 116 | 6 % | 215 | 11 % |
+| 3 000 | 118 | 4 % | 222 | 7 % |
+| 5 000 | 120 | 2 % | 229 | 5 % |
+| 10 000 | 121 | 1 % | 234 | 2 % |
+
+The 84 % column matches the criterion used by Hébert et al. (2026); see
+[Assumptions](#assumptions) for why it is 84 % and not 95 %.
+
+**The count saturates near 123 species** however large the pool grows, while the
+percentage keeps falling. Reporting a count rather than a percentage is therefore
+the more stable choice when comparing taxa of different sizes.
+
+---
+
+## The formula reproduces direct simulation
+
+![Validation](figures/fig4a_validation.png)
+
+Points are obtained by sampling directly from the raw data with **no formula
+involved**, following the procedure of Hébert et al.: build a species pool of
+size `N`, treat its mean as the true value, survey `n` of its species, and find
+the smallest `n` at which the error falls within tolerance. The line is the
+formula.
+
+Fifty pool sizes from 30 to 5 000, three independent runs. Mean difference −0.4
+to −0.7 species; 96–98 % of points agree within 2 species. The small offset is
+the rounding up, which adds 0.52 species on average.
+
+![Difference](figures/fig4b_validation_diff.png)
+
+---
+
+## Why this exists
 
 Hébert, Pollock and Hoban (2026, *Biological Conservation* 317: 111824) is the
 only study that answers how much monitoring the Ne > 500 indicator needs. Their
@@ -32,20 +90,49 @@ species, 31 % for pools around 200, 23 % for pools of 300 and above.
 
 Binned values are awkward to apply nationally. A pool of 299 species receives
 31 % and a pool of 301 species receives 23 %, an eight point gap for a two
-species difference. There is also no value shown for pools between 100 and 200
-species. Korea's eleven taxonomic groups range from 30 to 712 species, so five
-bars cannot be applied consistently.
+species difference. No value is shown for pools between 100 and 200 species.
+Korea's eleven taxonomic groups range from 30 to 712 species, so five bars cannot
+be applied consistently.
 
 This repository derives the same requirement as a continuous function of pool
-size, using the same criterion and the same tolerance as the original study.
+size, using the same source data, the same criterion and the same tolerance as
+the original study. Continuous application was agreed with the corresponding
+author.
+
+---
+
+## Where the numbers come from
+
+**σ, from the data.** The 583 species-level indicator values of Mastretta-Yanes
+et al. (2024b) have a standard deviation of 0.394826. All 583 values are used, so
+this is a measurement rather than an estimate.
+
+![Species-level indicator values](figures/fig1_histogram.png)
+
+The distribution is strongly skewed: 58.5 % of species score exactly zero and
+18.7 % exactly one.
+
+**k, from the criterion.** The absolute sampling error follows a half-normal
+distribution, whose mean and SD are fixed multiples of the standard error:
+`√(2/π) = 0.79788` and `√(1−2/π) = 0.60281`. The criterion of Hébert et al. is
+their sum, so `k = 1.40069`. No data enters this step.
+
+**n₀, then the finite-population correction.** Setting `k · SE ≤ T`, with
+`SE = (σ/√n)·√((N−n)/(N−1))`, and solving for `n` gives `n₀ = (kσ/T)²` for an
+infinite pool and `n = n₀N/(N−1+n₀)` for a finite one.
+
+![Requirement as the error curve meets T](figures/fig3_errorcurve.png)
+
+For a given species pool the sampling error falls as more species are surveyed.
+The requirement is the point where that curve meets the tolerated error.
 
 ---
 
 ## Relationship to Hébert et al. (2026)
 
-The original code and outputs are at
+The original code is at
 [katherinehebert/Ne_scenarios](https://github.com/katherinehebert/Ne_scenarios)
-(MIT License). This repository does **not** modify or redistribute that code.
+(MIT License). This repository does **not** modify or redistribute it.
 
 | | Hébert et al. (2026) | This repository |
 |---|---|---|
@@ -54,112 +141,110 @@ The original code and outputs are at
 | Criterion | mean + SD of the absolute error | same |
 | Method | Monte Carlo, 15 million draws | finite-population sample-size formula |
 | Output | five binned bars | continuous function of `N` |
-| Pool-size ceiling | 583, or 5000 with a bootstrapped pool | none |
+| Pool-size ceiling | 583, or 5 000 with a bootstrapped pool | none |
+| Criterion reported | 84 % coverage only | 84 % and 95 % side by side |
 
-Continuous application was agreed with the corresponding author.
-
-The two output files from the original repository are used here **for
-validation only** (`R/06`, `R/07`). They are not needed to derive the formula.
-
----
-
-## Method in three steps
-
-1. **σ from the data.** The 583 species-level indicator values of
-   Mastretta-Yanes et al. (2024b) have a standard deviation of 0.394826. All 583
-   values are used, so this is a measurement rather than an estimate.
-2. **k from the criterion.** The absolute sampling error follows a half-normal
-   distribution, whose mean and SD are fixed multiples of the standard error:
-   `√(2/π) = 0.79788` and `√(1−2/π) = 0.60281`. The criterion of Hébert et al.
-   is their sum, so `k = 1.40069`. No data enters this step.
-3. **n₀, then the finite-population correction.** Setting `k · SE ≤ T` and
-   solving for `n` gives `n₀ = (kσ/T)² = 122.34` for an infinite pool, and
-   `n = n₀N/(N−1+n₀)` for a finite one.
-
-Because `n₀` is an upper bound, the required *count* saturates near 123 species
-however large the pool grows, while the required *percentage* keeps falling.
-This is why a percentage is a poor unit for comparing taxa of different sizes.
-
----
-
-## Validation
-
-| Check | Method | Result |
-|---|---|---|
-| Normal approximation holds | Draw samples directly from the 583 values, no formula, 5 pool sizes | within 1 species |
-| Matches published results | 100 pool sizes from Fig. 6 output | mean difference −0.7 species, 94 % within 5 |
-| Holds beyond 583 species | 222 points from Fig. S7 output (`N` = 584–5000) | mean difference +0.36 species, 94 % within 5 |
-
-The residual scatter is Monte Carlo noise in the original simulations, not error
-in the formula: Hébert et al. drew each species pool once per pool size.
-
----
-
-## Repository layout
-
-```
-R/
-  00_setup.R            packages, paths, settings
-  01_download_data.R    fetch the three source files
-  02_sigma.R            σ from the 583 indicator values
-  03_constants.R        k, and n₀
-  04_formula.R          the formula, as a reusable function
-  05_validate_mc.R      validation 1: direct sampling from raw data
-  06_validate_hebert.R  validation 2: against Fig. 6 output
-  07_validate_largeN.R  validation 3: against Fig. S7 output, N > 583
-  08_figures.R          figures
-  09_apply_korea.R      worked example: eleven Korean taxonomic groups
-data/
-  korea_species_pools.csv
-```
-
-Run the scripts in order. Each one is self-contained and can be read on its own;
-`00_setup.R` and `04_formula.R` are sourced by the others as needed. There is no
-pipeline script, because the point of the repository is the derivation and its
-checks rather than a batch job.
-
-To apply the method elsewhere, only `R/04_formula.R` is needed:
-
-```r
-source("R/04_formula.R")
-n_species_needed(N = 712)                      # 105
-n_species_needed(N = 712, k = qnorm(0.975))    # 180, for a 95 % criterion
-```
+Only the source data is used here. The authors' own output files are not needed,
+because the formula is derived from the 583 values directly.
 
 ---
 
 ## Assumptions
 
 - **σ is borrowed.** 0.394826 comes from a nine country, eleven taxon pool. It is
-  not Korea specific and not taxon specific. The design of the original study is
-  to provide a value usable where national data are insufficient, which is the
-  situation almost everywhere.
+  neither country specific nor taxon specific. The design of the original study
+  is to provide a value usable where national data are insufficient, which is the
+  situation almost everywhere. Because `n₀` scales with `σ²`, a σ that is 10 %
+  larger raises the requirement by about 9 %.
 - **The criterion is not a 95 % bound.** Mean plus SD corresponds to about 84 %
   coverage of the absolute error. The phrase "5 % risk of error" in the paper
   refers to the *size* of the tolerated error, not the frequency of exceeding it.
-  Both criteria are reported here.
+  Both criteria are given above.
 - **Only species selection error is covered.** The paper's Steps 1 and 2
-  (population level thresholding, and sampling populations within a species)
-  contribute further error that is not added in here or in the original study.
-- **The Korean pools are Red List assessed species.** They are used as a proxy
-  for the full national pools; assessed species are not a random sample of all
-  species with respect to the indicator.
+  (population-level thresholding, and sampling populations within a species)
+  contribute further error that is not added in, here or in the original study.
+  These numbers are a floor.
+- **A species pool must be defined.** In the worked example the Korean pools are
+  Red List assessed species used as a proxy for the full national pools; assessed
+  species are not a random sample of all species with respect to the indicator.
+
+---
+
+## Worked example: eleven Korean taxonomic groups
+
+![Korean taxa](figures/fig5_final.png)
+
+Species pool sizes are the species assessed in the Korean National Red List,
+excluding Data Deficient. Results are in
+`outputs/07_korea_minimum_species.csv`.
+
+Replace `data/korea_species_pools.csv` with your own pool sizes and re-run
+`R/07_apply_korea.R` to reproduce this for another country.
+
+| Column | Meaning |
+|---|---|
+| `taxon_kr` | Taxonomic group, Korean |
+| `taxon_en` | Taxonomic group, English |
+| `N` | Species pool size |
+
+---
+
+## If you do want to run the code
+
+```
+R/
+  00_setup.R            packages, paths, settings
+  01_download_data.R    fetch the source dataset
+  02_sigma.R            σ from the 583 indicator values
+  03_constants.R        k, and n₀
+  04_formula.R          the formula, as a reusable function
+  05_validate_mc.R      validation by direct sampling from the raw data
+  06_figures.R          figures
+  07_apply_korea.R      worked example
+```
+
+Run them in order. Each is self-contained and can be read on its own;
+`00_setup.R` and `04_formula.R` are sourced by the others as needed. There is no
+pipeline script, because the point of the repository is the derivation and its
+check rather than a batch job.
+
+Only `R/04_formula.R` is needed to apply the method:
+
+```r
+source("R/04_formula.R")
+
+n_species_needed(N = 712)                            # 105
+n_species_needed(N = c(94, 388, 712))                # 54  94  105
+n_species_needed(N = 712, k = k_for_coverage(0.95))  # 180
+```
+
+`k_for_coverage()` avoids a common slip: a 95 % two-sided bound is `qnorm(0.975)`,
+not `qnorm(0.95)`, which gives 90 %.
+
+**Data.** `data/indicators_full.csv` is not committed. `R/01_download_data.R`
+fetches it from Dryad
+([doi:10.5061/dryad.bk3j9kdkm](https://doi.org/10.5061/dryad.bk3j9kdkm)); the
+`indicator1` column holds the species-level indicator, and 583 of the 966 rows
+have a value. Dryad redirects to the actual file location, which R's default
+download method does not always follow, so the script uses `curl` with `-L`. If
+it still fails, open the URL in a browser and place the file in `data/`.
+Intermediate `.rds` files are not committed either, since re-running the scripts
+regenerates them.
 
 ---
 
 ## Citation
 
-If you use this repository, please cite the two underlying sources:
+Please cite the two underlying sources:
 
 > Hébert, K., Pollock, L., Hoban, S. (2026) How much monitoring is needed to
 > reliably track progress towards genetic diversity targets?
-> *Biological Conservation* 317: 111824. https://doi.org/10.1016/j.biocon.2026.111824
+> *Biological Conservation* 317: 111824.
+> https://doi.org/10.1016/j.biocon.2026.111824
 
 > Mastretta-Yanes, A. et al. (2024) Multinational evaluation of genetic diversity
 > indicators for the Kunming-Montreal Global Biodiversity Framework.
 > *Ecology Letters* 27: e14461. Data: https://doi.org/10.5061/dryad.bk3j9kdkm
-
----
 
 ## Funding
 
