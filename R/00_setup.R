@@ -1,16 +1,16 @@
 # =============================================================================
 # 00_setup.R
-# 패키지 로드, 경로 정의, 전역 설정
+# Packages, paths, and global settings.
 #
-# 이 스크립트는 다른 모든 스크립트의 맨 앞에서 source() 로 불러온다.
+# Sourced at the top of every other script.
 # =============================================================================
 
-# --- 패키지 ------------------------------------------------------------------
+# --- packages ----------------------------------------------------------------
 
 library(dplyr)
 library(ggplot2)
 
-# --- 경로 --------------------------------------------------------------------
+# --- paths -------------------------------------------------------------------
 
 dir_data    <- "data"
 dir_outputs <- "outputs"
@@ -20,26 +20,26 @@ for (d in c(dir_data, dir_outputs, dir_figures)) {
   if (!dir.exists(d)) dir.create(d)
 }
 
-# --- 파일 이름 ---------------------------------------------------------------
+# --- file names --------------------------------------------------------------
 #
-# 자료 파일은 하나뿐이다. Mastretta-Yanes et al. (2024b) 의 583 종
-# 종 수준 지표값이며 이것이 공식의 유일한 입력이다.
+# There is only one source dataset: the 583 species-level indicator values of
+# Mastretta-Yanes et al. (2024b). It is the only data input to the formula.
 
 file_indicators  <- file.path(dir_data, "indicators_full.csv")
 file_korea_pools <- file.path(dir_data, "korea_species_pools.csv")
 
-# --- 분석 설정 ---------------------------------------------------------------
+# --- analysis settings -------------------------------------------------------
 
-# 허용 오차. 지표는 0 에서 1 사이의 값이므로 0.05 는 5 퍼센트 포인트를 뜻한다.
-# Hebert et al. (2026) 이 사용한 값이다.
+# Tolerated deviation. The indicator runs from 0 to 1, so 0.05 means five
+# percentage points. This is the value used by Hebert et al. (2026).
 T_TOLERANCE <- 0.05
 
-# 재현을 위한 난수 시드
+# Seed, for reproducibility
 SEED <- 2026
 
-# 그림 공통 설정
+# Shared plot theme
 theme_ne500 <- theme_bw(base_size = 10) +
   theme(panel.grid.minor = element_blank(),
         plot.title = element_text(size = 10))
 
-message("00_setup.R 완료")
+message("00_setup.R done")

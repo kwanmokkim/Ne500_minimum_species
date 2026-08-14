@@ -1,8 +1,8 @@
 # =============================================================================
 # 03_constants.R
-# 판정 기준 상수 k 를 계산하고 무한 종풀 필요 종수 n0 를 산출한다.
+# Compute the criterion constant k and the infinite-pool requirement n0.
 #
-# k 는 자료를 사용하지 않는다. 원주율만 있으면 계산되는 이론값이다.
+# No data enters the calculation of k. It follows from the criterion alone.
 # =============================================================================
 
 source("R/00_setup.R")
@@ -10,59 +10,59 @@ source("R/00_setup.R")
 sigma_result <- readRDS(file.path(dir_outputs, "02_sigma.rds"))
 sigma <- sigma_result$sigma
 
-# --- half-normal 상수 --------------------------------------------------------
+# --- half-normal constants ---------------------------------------------------
 #
-# 조사 결과 x_bar 가 참값 mu 에서 벗어나는 정도를 D = |x_bar - mu| 라 하자.
-# x_bar 가 정규분포를 따르면 D 는 half-normal 분포를 따르고
-# 그 평균과 표준편차는 표준오차 SE 의 고정 배수가 된다.
+# Let D = |x_bar - mu| be the departure of a survey from the true value.
+# If x_bar is normal, D is half-normal, and its mean and standard deviation are
+# fixed multiples of the standard error SE.
 
-mult_mean <- sqrt(2 / pi)        # D 의 평균  = SE * 이 값
-mult_sd   <- sqrt(1 - 2 / pi)    # D 의 표준편차 = SE * 이 값
+mult_mean <- sqrt(2 / pi)        # mean of D            = SE * this
+mult_sd   <- sqrt(1 - 2 / pi)    # standard deviation of D = SE * this
 
-round(c(평균배수 = mult_mean, 표준편차배수 = mult_sd), 5)
+round(c(mean_multiple = mult_mean, sd_multiple = mult_sd), 5)
 
-# --- 판정 기준 상수 k --------------------------------------------------------
+# --- criterion constant k ----------------------------------------------------
 #
-# Hebert et al. 은 D 의 평균과 표준편차를 더한 값을 판정에 사용했다.
-# 그 합을 SE 단위로 표현한 것이 k 다.
+# Hebert et al. use the mean of D plus its standard deviation. Expressing that
+# sum in units of SE gives k.
 
 k_hebert <- mult_mean + mult_sd
 
-# 참고로 다른 기준을 쓰고 싶다면 아래 값을 사용한다.
-# 이 값들은 위 식과 무관하며 정규분포 분위수에서 나온다.
-k_95   <- qnorm(0.975)           # 오차가 T 안에 들어올 확률 95%
-k_975  <- qnorm(0.9875)          # 같은 확률 97.5%
+# For a different criterion. These come from normal quantiles and are unrelated
+# to the expression above.
+k_95   <- qnorm(0.975)           # error falls within T 95% of the time
+k_975  <- qnorm(0.9875)          # 97.5% of the time
 
-# 각 k 가 몇 퍼센트에 해당하는지 확인한다.
+# Coverage implied by a given k
 coverage <- function(k) 2 * pnorm(k) - 1
 
 data.frame(
-  기준 = c("평균 + 표준편차 (Hebert)", "95%", "97.5%"),
+  criterion = c("mean + SD (Hebert)", "95%", "97.5%"),
   k = round(c(k_hebert, k_95, k_975), 5),
-  포함확률 = round(coverage(c(k_hebert, k_95, k_975)), 4)
+  coverage = round(coverage(c(k_hebert, k_95, k_975)), 4)
 )
 
-# --- n0 산출 -----------------------------------------------------------------
+# --- n0 ----------------------------------------------------------------------
 #
-# 종풀이 무한히 클 때 필요한 종수다. 필요 종수의 상한이기도 하다.
+# The requirement for an infinitely large species pool, and therefore an upper
+# bound on the requirement for any pool.
 #
-#   k * SE <= T  이고  SE = sigma / sqrt(n)  이므로
-#   n0 = (k * sigma / T)^2
+#   k * SE <= T   with   SE = sigma / sqrt(n)   gives   n0 = (k * sigma / T)^2
 
 n0_from <- function(k, sigma, T_val = T_TOLERANCE) (k * sigma / T_val)^2
 
 n0_hebert <- n0_from(k_hebert, sigma)
 n0_95     <- n0_from(k_95, sigma)
 
-# 계산 과정을 단계별로 확인한다.
+# Step by step
 data.frame(
-  단계 = c("k * sigma", "k * sigma / T", "n0 = 제곱"),
-  값 = round(c(k_hebert * sigma,
-               k_hebert * sigma / T_TOLERANCE,
-               n0_hebert), 5)
+  step  = c("k * sigma", "k * sigma / T", "n0 = squared"),
+  value = round(c(k_hebert * sigma,
+                  k_hebert * sigma / T_TOLERANCE,
+                  n0_hebert), 5)
 )
 
-# --- 저장 --------------------------------------------------------------------
+# --- save --------------------------------------------------------------------
 
 constants <- list(
   sigma = sigma,
@@ -77,10 +77,10 @@ constants <- list(
 
 saveRDS(constants, file.path(dir_outputs, "03_constants.rds"))
 
-message(sprintf("k (Hebert 기준) : %.5f   포함확률 %.1f%%",
+message(sprintf("k (Hebert criterion) : %.5f   coverage %.1f%%",
                 k_hebert, 100 * coverage(k_hebert)))
-message(sprintf("k (95%% 기준)    : %.5f   포함확률 %.1f%%",
+message(sprintf("k (95%% criterion)    : %.5f   coverage %.1f%%",
                 k_95, 100 * coverage(k_95)))
-message(sprintf("n0 (Hebert 기준): %.2f", n0_hebert))
-message(sprintf("n0 (95%% 기준)   : %.2f", n0_95))
-message("03_constants.R 완료")
+message(sprintf("n0 (Hebert criterion): %.2f", n0_hebert))
+message(sprintf("n0 (95%% criterion)   : %.2f", n0_95))
+message("03_constants.R done")

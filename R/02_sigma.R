@@ -1,52 +1,52 @@
 # =============================================================================
 # 02_sigma.R
-# 583종 종별 지표값에서 표준편차 sigma 를 산출한다.
+# Compute sigma, the standard deviation of the 583 species-level values.
 #
-# sigma 는 이 분석에서 자료가 공급하는 유일한 값이다.
-# 나머지는 모두 선택이거나 수학 상수다.
+# Sigma is the only quantity the analysis takes from data. Everything else is
+# either a choice or a mathematical constant.
 # =============================================================================
 
 source("R/00_setup.R")
 
-# --- 자료 읽기 ---------------------------------------------------------------
+# --- read --------------------------------------------------------------------
 
 indic <- read.csv(file_indicators)
 
 dim(indic)
 names(indic)
 
-# indicator1 열이 종 수준 Ne500 지표값이다.
-# 한 종의 개체군 중 유효집단크기가 500 을 넘는 비율이며 0 에서 1 사이의 값이다.
+# The indicator1 column holds the species-level Ne500 indicator: the proportion
+# of a species' populations with an effective size above 500. It runs from 0 to 1.
 
 full <- indic$indicator1[!is.na(indic$indicator1)]
 
-length(full)   # 583 이어야 한다
+length(full)   # should be 583
 
-# --- 분포 확인 ---------------------------------------------------------------
+# --- inspect the distribution ------------------------------------------------
 #
-# 원자료는 정규분포가 아니다. 절반 이상이 정확히 0 이다.
-# 그럼에도 표본평균은 정규분포를 따르며 이는 05_validate_mc.R 에서 확인한다.
+# The raw values are far from normal: more than half are exactly zero. Sample
+# means are nonetheless normal, which is checked in 05_validate_mc.R.
 
 summary(full)
 
 table(cut(full, breaks = c(-0.01, 0, 0.25, 0.5, 0.75, 0.999, 1),
-          labels = c("정확히 0", "0 초과 0.25", "0.25-0.5",
-                     "0.5-0.75", "0.75 미만", "정확히 1")))
+          labels = c("exactly 0", "0 to 0.25", "0.25-0.5",
+                     "0.5-0.75", "0.75 to <1", "exactly 1")))
 
-round(mean(full == 0), 3)   # 0 인 비율
-round(mean(full == 1), 3)   # 1 인 비율
+round(mean(full == 0), 3)   # proportion at zero
+round(mean(full == 1), 3)   # proportion at one
 
-# --- sigma 산출 --------------------------------------------------------------
+# --- sigma -------------------------------------------------------------------
 #
-# 583종 전부를 사용하므로 이는 추정이 아니라 측정이다.
-# 따라서 분모를 n-1 이 아니라 n 으로 하는 모집단 표준편차를 쓴다.
+# All 583 values are used, so this is a measurement rather than an estimate.
+# The population standard deviation (divisor N) is therefore the right one.
 
 sigma_pop <- sqrt(mean((full - mean(full))^2))
 
-# 참고: R 의 sd() 는 분모가 n-1 이다. 583개에서는 차이가 미미하다.
-c(모집단_표준편차 = sigma_pop, sd_함수 = sd(full))
+# For reference: R's sd() divides by n-1. With 583 values the difference is tiny.
+c(population_sd = sigma_pop, sd_function = sd(full))
 
-# --- 저장 --------------------------------------------------------------------
+# --- save --------------------------------------------------------------------
 
 sigma_result <- list(
   values = full,
@@ -57,7 +57,7 @@ sigma_result <- list(
 
 saveRDS(sigma_result, file.path(dir_outputs, "02_sigma.rds"))
 
-message(sprintf("종 수  : %d", sigma_result$n_species))
-message(sprintf("평균   : %.4f", sigma_result$mean))
-message(sprintf("sigma  : %.6f", sigma_result$sigma))
-message("02_sigma.R 완료")
+message(sprintf("species : %d", sigma_result$n_species))
+message(sprintf("mean    : %.4f", sigma_result$mean))
+message(sprintf("sigma   : %.6f", sigma_result$sigma))
+message("02_sigma.R done")

@@ -1,28 +1,28 @@
 # =============================================================================
 # 07_apply_korea.R
-# 공식을 국내 11 개 분류군에 적용한다.
+# Apply the formula to eleven Korean taxonomic groups.
 #
-# 이 스크립트는 적용 예시다. 다른 나라에서 사용할 경우
-# data/korea_species_pools.csv 를 자국 자료로 바꾸면 된다.
+# This is a worked example. To use it for another country, replace
+# data/korea_species_pools.csv with your own pool sizes.
 #
-# 종풀 크기 N 은 국가생물적색목록 평가 완료 종수에서 자료부족(DD) 을 제외한
-# 값이다. 따라서 보고 대상은 적색목록 평가 완료 종이다.
+# N is the number of species assessed in the Korean National Red List, excluding
+# Data Deficient. The reporting universe is therefore the assessed species.
 # =============================================================================
 
 source("R/00_setup.R")
 source("R/04_formula.R")
 
-# --- 종풀 크기 읽기 ----------------------------------------------------------
+# --- read the pool sizes -----------------------------------------------------
 
 korea <- read.csv(file_korea_pools)
 
 korea
 sum(korea$N)
 
-# --- 두 기준으로 적용 --------------------------------------------------------
+# --- apply both criteria -----------------------------------------------------
 #
-# Hebert 기준은 허용 오차 안에 들어올 확률이 83.9% 다.
-# 95% 기준을 병기하는 이유는 방법론 문서 7.1 절에 있다.
+# The Hebert criterion holds the error within tolerance about 84% of the time.
+# The 95% criterion is reported alongside it; see the README for why.
 
 k_hebert <- sqrt(2 / pi) + sqrt(1 - 2 / pi)
 k_95 <- k_for_coverage(0.95)
@@ -37,7 +37,7 @@ korea_result <- korea |>
 
 korea_result
 
-# --- 합계 --------------------------------------------------------------------
+# --- totals ------------------------------------------------------------------
 
 totals <- korea_result |>
   summarise(N = sum(N),
@@ -48,22 +48,22 @@ totals <- korea_result |>
 
 totals
 
-# --- 전수조사 대상 확인 ------------------------------------------------------
+# --- groups better surveyed in full ------------------------------------------
 #
-# 필요 비율이 80% 를 넘으면 표본조사로 절약되는 종수가 적어
-# 전수조사가 설계상 단순하고 결과적으로도 우월하다.
+# Where the required proportion exceeds about 80%, sampling saves so few species
+# that a full census is both simpler to design and better.
 
 korea_result |>
   filter(pct_hebert >= 80) |>
-  mutate(절약되는_종수 = N - n_hebert) |>
-  select(taxon_kr, N, n_hebert, pct_hebert, 절약되는_종수)
+  mutate(species_saved = N - n_hebert) |>
+  select(taxon, N, n_hebert, pct_hebert, species_saved)
 
-# --- 저장 --------------------------------------------------------------------
+# --- save --------------------------------------------------------------------
 
 write.csv(korea_result,
           file.path(dir_outputs, "07_korea_minimum_species.csv"),
           row.names = FALSE, fileEncoding = "UTF-8")
 
-message(sprintf("합계: 종풀 %d 종 중 Hebert 기준 %d 종, 95%% 기준 %d 종",
+message(sprintf("Total: %d species in the pools; %d needed (Hebert), %d needed (95%%)",
                 totals$N, totals$n_hebert, totals$n_95))
-message("07_apply_korea.R 완료")
+message("07_apply_korea.R done")

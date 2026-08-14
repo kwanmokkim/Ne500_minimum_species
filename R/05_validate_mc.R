@@ -1,16 +1,17 @@
 # =============================================================================
 # 05_validate_mc.R
-# 검증 1. 원자료에서 직접 표본을 뽑아 필요 종수를 구하고 공식과 비교한다.
+# Validation: sample directly from the raw data and compare with the formula.
 #
-# 공식은 오차가 정규분포를 따른다는 전제 위에 있다. 그런데 583개 원자료는
-# 절반 이상이 정확히 0 인 치우친 분포다. 전제가 성립하는지 확인해야 한다.
+# The formula assumes the sampling error is normally distributed. The 583 source
+# values are far from normal: more than half are exactly zero. Whether the normal
+# approximation holds at sample sizes as small as 25 therefore has to be checked
+# rather than assumed.
 #
-# 확인 방법은 단순하다. 공식을 쓰지 않고 Hebert et al. 의 절차를 그대로
-# 실행하여 답을 구한 뒤 공식이 주는 답과 비교한다.
+# The check is simple. Without using the formula, follow the procedure of
+# Hebert et al. to find the required number of species, then compare.
 #
-# 이 스크립트는 특정 국가와 무관하다. 종풀 크기 30 부터 5000 까지
-# 넓은 범위에서 공식이 성립하는지 확인하는 것이 목적이다.
-# 한국 적용은 07_apply_korea.R 에 있다.
+# This script is not country specific. The aim is to confirm the formula across a
+# wide range of pool sizes. The Korean application is in 07_apply_korea.R.
 # =============================================================================
 
 source("R/00_setup.R")
@@ -20,33 +21,32 @@ sigma_result <- readRDS(file.path(dir_outputs, "02_sigma.rds"))
 full <- sigma_result$values
 N_donor <- length(full)   # 583
 
-# --- 설정 --------------------------------------------------------------------
+# --- settings ----------------------------------------------------------------
 
-n_pools   <- 20     # 가상 국가를 몇 개 만들 것인가
-reps_pool <- 1000   # 한 국가에서 조사를 몇 번 재현할 것인가
-window    <- -6:2   # 공식 예측값 주변 어디까지 확인할 것인가
+n_pools   <- 20     # species pools drawn per pool size
+reps_pool <- 1000   # surveys simulated within each pool
+window    <- -6:2   # sample sizes tested, relative to the formula's prediction
 
-# 확인할 종풀 크기. 필요 비율은 작은 N 에서 급격히 변하고 큰 N 에서
-# 평평해지므로 등간격이 아니라 로그 간격으로 나눈다.
+# Pool sizes to check. The required proportion changes fast at small N and
+# flattens at large N, so the spacing is logarithmic rather than uniform.
 N_check <- unique(round(exp(seq(log(30), log(5000), length.out = 50))))
 
 length(N_check)
 head(N_check, 12)
 tail(N_check, 5)
 
-# --- Hebert et al. 의 절차를 재현하는 함수 -----------------------------------
+# --- reproduce the procedure of Hebert et al. --------------------------------
 #
-# 종풀 크기 N 에서 n 종을 조사했을 때의 오차 요약값을 구한다.
+# Measure the error when n of N species are surveyed.
 #
-# 절차는 Hebert et al. 과 동일하다.
-#   1. 583개 값에서 N 종을 뽑아 가상 국가의 전체 종목록을 만든다
-#   2. 그 N 종의 평균을 참값으로 둔다
-#   3. N 종 중 n 종만 뽑아 평균을 낸다
-#   4. 참값과의 차이를 절댓값으로 기록한다
-#   5. 3 과 4 를 여러 번 반복한다
+#   1. draw N values to form the full species list of a virtual country
+#   2. take the mean of those N values as the true value
+#   3. draw n of them and take the mean
+#   4. record the absolute difference
+#   5. repeat steps 3 and 4 many times
 #
-# 한 군데만 다르다. Hebert et al. 은 1 번을 한 번만 실행하지만
-# 여기서는 n_pools 번 반복한다. 이유는 아래 주석에 있다.
+# One thing differs. Hebert et al. run step 1 once per pool size; here it is
+# repeated n_pools times. The reason is given below.
 
 measure_error <- function(N, n, pool_source, n_pools, reps_pool) {
 
@@ -54,18 +54,18 @@ measure_error <- function(N, n, pool_source, n_pools, reps_pool) {
 
   for (p in seq_len(n_pools)) {
 
-    # 1. 가상 국가의 전체 종목록
-    #    N 이 583 을 넘으면 비복원추출이 불가능하므로 복원추출을 쓴다.
-    #    Hebert et al. 이 Fig. S7 에서 사용한 방식과 같다.
+    # 1. full species list of a virtual country.
+    #    Above 583 there are not enough values to draw without replacement, so
+    #    we sample with replacement, as Hebert et al. did for Fig. S7.
     pool <- sample(pool_source, size = N, replace = (N > length(pool_source)))
 
-    # 2. 이 국가의 참값
+    # 2. the true value for this country
     true_value <- mean(pool)
 
-    # 3-5. n 종만 조사한 경우를 reps_pool 번 재현한다.
-    #      아래는 replicate(reps_pool, mean(sample(pool, n))) 과 같은 계산이며
-    #      행렬로 한 번에 처리하여 속도를 높인 것이다.
-    idx <- replicate(reps_pool, sample.int(N, n))       # n x reps_pool 행렬
+    # 3-5. simulate surveying n of the N species, reps_pool times.
+    #      This is equivalent to replicate(reps_pool, mean(sample(pool, n)))
+    #      but handles all repetitions in one matrix operation, which is faster.
+    idx <- replicate(reps_pool, sample.int(N, n))       # n x reps_pool matrix
     samp_means <- colMeans(matrix(pool[idx], nrow = n))
 
     errs <- c(errs, abs(samp_means - true_value))
@@ -74,21 +74,24 @@ measure_error <- function(N, n, pool_source, n_pools, reps_pool) {
   c(D_mean = mean(errs), D_sd = sd(errs))
 }
 
-# 왜 종풀을 여러 번 뽑는가
-# ------------------------
-# Hebert et al. 은 각 종풀 크기마다 자루를 한 번만 뽑는다. 그러면 그 N 종이
-# 우연히 흩어짐이 큰 조합일 수도 작은 조합일 수도 있고 결과가 그 운에 좌우된다.
-# 공식은 sigma = 0.3948 을 전제로 하므로 그 전제에 맞는 평균적 자루와
-# 비교해야 공식 자체를 시험하는 것이 된다. 자루를 한 번만 뽑으면
-# 공식이 맞는가와 이 자루가 운이 좋았는가가 섞인다.
+# Why redraw the pool
+# ------------------
+# Hebert et al. draw each species pool once. Whichever N species happen to be
+# drawn may be unusually spread out or unusually tight, and the result follows
+# that luck.
 #
-# Hebert et al. 의 절차를 글자 그대로 재현하려면 n_pools 를 1 로 두면 된다.
+# The formula assumes sigma = 0.3948, so it has to be compared against a pool of
+# average spread. Drawing once mixes two questions: whether the formula is right,
+# and whether that particular pool was lucky.
+#
+# To follow Hebert et al. exactly, set n_pools to 1.
 
-# --- 최소 종수를 찾는 함수 ---------------------------------------------------
+# --- find the required number of species -------------------------------------
 #
-# n 을 2 부터 하나씩 늘리면 시간이 너무 걸린다. 공식이 예측한 값 주변만
-# 확인하되 아래쪽이 실패하고 위쪽이 통과하는지를 함께 본다.
-# 아래쪽이 이미 통과하면 공식이 과대추정하고 있다는 뜻이므로 범위를 넓힌다.
+# Stepping n up from 2 would take too long. Instead, test a window around the
+# formula's prediction and confirm that the lowest value fails and the highest
+# passes. If the lowest already passes, the formula is overestimating and the
+# window needs to be widened.
 
 find_minimum_n <- function(N, pool_source, n_pools, reps_pool,
                            window, T_val = T_TOLERANCE) {
@@ -106,23 +109,23 @@ find_minimum_n <- function(N, pool_source, n_pools, reps_pool,
 
   passed <- which(cihi <= T_val)
 
-  # 확인 1. 가장 작은 n 이 이미 통과하면 범위 밖에 답이 있다
+  # Check 1. If the smallest n already passes, the answer lies below the window.
   if (length(passed) > 0 && passed[1] == 1 && n_try[1] > 2) {
-    return(list(n_mc = NA_integer_, note = "범위 아래에 답이 있다"))
+    return(list(n_mc = NA_integer_, note = "answer below window"))
   }
-  # 확인 2. 가장 큰 n 도 통과하지 못하면 역시 범위 밖이다
+  # Check 2. If even the largest n fails, the answer lies above the window.
   if (length(passed) == 0) {
-    return(list(n_mc = NA_integer_, note = "범위 위에 답이 있다"))
+    return(list(n_mc = NA_integer_, note = "answer above window"))
   }
 
-  list(n_mc = n_try[passed[1]], note = "정상")
+  list(n_mc = n_try[passed[1]], note = "ok")
 }
 
-# --- 실행 --------------------------------------------------------------------
+# --- run ---------------------------------------------------------------------
 #
-# 종풀 크기 50 개 x 확인할 n 값 7 개 x 20 자루 x 1000 회 이므로
-# 컴퓨터에 따라 수 분이 걸린다. 시간을 줄이려면 위의 n_pools 와
-# reps_pool 을 낮추거나 N_check 의 length.out 을 줄인다.
+# 50 pool sizes x 7 sample sizes x 20 pools x 1000 surveys, so this takes a few
+# minutes. To shorten it, lower n_pools or reps_pool, or reduce length.out in
+# N_check above.
 
 set.seed(SEED)
 
@@ -140,7 +143,7 @@ for (i in seq_along(N_check)) {
   results_mc$n_mc[i] <- out$n_mc
   results_mc$note[i] <- out$note
 
-  message(sprintf("  N = %5d   Monte Carlo %4s   공식 %4d   %s",
+  message(sprintf("  N = %5d   sampling %4s   formula %4d   %s",
                   N_check[i],
                   ifelse(is.na(out$n_mc), "-", out$n_mc),
                   results_mc$n_formula[i],
@@ -148,46 +151,50 @@ for (i in seq_along(N_check)) {
 }
 
 results_mc <- results_mc |>
-  mutate(차이 = n_mc - n_formula)
+  mutate(difference = n_mc - n_formula)
 
-# --- 결과 --------------------------------------------------------------------
+# --- results -----------------------------------------------------------------
 
 print(results_mc, row.names = FALSE)
 
-# 요약
 summary_mc <- c(
-  지점수 = sum(!is.na(results_mc$차이)),
-  평균차이 = mean(results_mc$차이, na.rm = TRUE),
-  표준편차 = sd(results_mc$차이, na.rm = TRUE),
-  최대차이 = max(abs(results_mc$차이), na.rm = TRUE),
-  이종이내비율 = mean(abs(results_mc$차이) <= 2, na.rm = TRUE)
+  n_points  = sum(!is.na(results_mc$difference)),
+  mean_diff = mean(results_mc$difference, na.rm = TRUE),
+  sd_diff   = sd(results_mc$difference, na.rm = TRUE),
+  max_diff  = max(abs(results_mc$difference), na.rm = TRUE),
+  within_2  = mean(abs(results_mc$difference) <= 2, na.rm = TRUE)
 )
 round(summary_mc, 2)
 
-# 583 을 기준으로 나누어 본다.
-# 583 이하는 비복원추출이고 초과는 복원추출이므로 성격이 조금 다르다.
+# Split at 583. Below that the pool is drawn without replacement, above it with
+# replacement, so the two halves are worth looking at separately.
 results_mc |>
-  mutate(구간 = ifelse(N <= N_donor, "583 이하 (비복원)", "583 초과 (복원)")) |>
-  group_by(구간) |>
-  summarise(지점수 = n(),
-            평균차이 = round(mean(차이, na.rm = TRUE), 2),
-            표준편차 = round(sd(차이, na.rm = TRUE), 2),
+  mutate(band = ifelse(N <= N_donor, "N <= 583 (without replacement)",
+                                     "N >  583 (with replacement)")) |>
+  group_by(band) |>
+  summarise(n_points  = n(),
+            mean_diff = round(mean(difference, na.rm = TRUE), 2),
+            sd_diff   = round(sd(difference, na.rm = TRUE), 2),
             .groups = "drop") |>
   as.data.frame()
 
-# --- 해석 --------------------------------------------------------------------
+# --- interpretation ----------------------------------------------------------
 #
-# 차이가 0 근처이면 공식이 옳다는 뜻이다.
-# 남는 산포는 Monte Carlo 반복 오차이며 반복 횟수를 늘리면 줄어든다.
+# A difference near zero means the formula is right. The remaining scatter is
+# simulation noise and shrinks if reps_pool is raised.
 #
-# 원자료가 심하게 치우쳐 있음에도 공식이 맞는다는 것은
-# 표본 크기가 25 정도일 때부터 정규 근사가 작동한다는 뜻이다.
-# 2.5 절의 전제가 실제로 성립하며 따라서 공식을 적용할 수 있다.
+# The mean sits slightly below zero because the formula rounds up: rounding adds
+# about 0.52 species on average. Rounding up is deliberate, since rounding down
+# would fall short of the criterion.
+#
+# That the formula holds despite the skew in the raw values means the normal
+# approximation is already working at sample sizes around 25, which is what had
+# to be checked.
 
 saveRDS(results_mc, file.path(dir_outputs, "05_validate_mc.rds"))
 
-message(sprintf("\n비교 지점 %d 개 (N = %d ~ %d)",
-                summary_mc["지점수"], min(N_check), max(N_check)))
-message(sprintf("평균 차이 %+.2f 종, 표준편차 %.2f 종",
-                summary_mc["평균차이"], summary_mc["표준편차"]))
-message("05_validate_mc.R 완료")
+message(sprintf("\n%d pool sizes checked (N = %d to %d)",
+                summary_mc["n_points"], min(N_check), max(N_check)))
+message(sprintf("mean difference %+.2f species, SD %.2f",
+                summary_mc["mean_diff"], summary_mc["sd_diff"]))
+message("05_validate_mc.R done")

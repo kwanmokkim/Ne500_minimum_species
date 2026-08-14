@@ -1,23 +1,24 @@
 # =============================================================================
 # 04_formula.R
-# 필요 종수 공식을 함수로 정의한다.
+# The formula, as a reusable function.
 #
-# 이 파일이 저장소의 핵심이다. 다른 사람이 자기 나라 자료에 적용할 때
-# 필요한 것은 이 함수 하나다.
+# This is the core of the repository. To apply the method to another country,
+# this file is the only one you need.
 # =============================================================================
 
 source("R/00_setup.R")
 
-# --- 공식 --------------------------------------------------------------------
+# --- the formula -------------------------------------------------------------
 #
-#   n = n0 * N / (N - 1 + n0)      단,  n0 = (k * sigma / T)^2
+#   n = n0 * N / (N - 1 + n0)        with   n0 = (k * sigma / T)^2
 #
-# N     종풀 크기. 보고 대상 전체 종수
-# T     허용 오차. 지표 척도에서 용인하는 최대 편차
-# sigma 종별 지표값의 표준편차. 기본값은 583종 국제 자료에서 산출한 값
-# k     판정 기준 상수
+# N      species pool size: all species the indicator is meant to represent
+# T      tolerated deviation on the 0-1 indicator scale
+# sigma  standard deviation of species-level indicator values. The default is
+#        the value measured from the 583-species international dataset
+# k      criterion constant, in units of standard error
 #
-# 유도 과정은 README 와 방법론 문서에 있다.
+# The derivation is in the README and in the accompanying methods document.
 
 n_species_needed <- function(N,
                              T_val = 0.05,
@@ -25,15 +26,15 @@ n_species_needed <- function(N,
                              k = sqrt(2 / pi) + sqrt(1 - 2 / pi)) {
   n0 <- (k * sigma / T_val)^2
   n  <- n0 * N / (N - 1 + n0)
-  pmin(ceiling(n), N)     # 올림하되 종풀 크기를 넘지 않는다
+  pmin(ceiling(n), N)     # round up, but never ask for more species than exist
 }
 
-# 비율이 필요한 경우
+# As a proportion
 prop_species_needed <- function(N, ...) {
   n_species_needed(N, ...) / N
 }
 
-# 올림하지 않은 실수값. 검증에서 공식 자체의 정확도를 볼 때 사용한다.
+# Without rounding. Used when checking the accuracy of the formula itself.
 n_species_needed_raw <- function(N,
                                  T_val = 0.05,
                                  sigma = 0.394826,
@@ -42,13 +43,13 @@ n_species_needed_raw <- function(N,
   pmin(n0 * N / (N - 1 + n0), N)
 }
 
-# --- 다른 기준을 쓰고 싶을 때 ------------------------------------------------
+# --- using a different criterion ---------------------------------------------
 #
-# 원하는 포함 확률에 해당하는 k 를 돌려준다.
+# Returns the k corresponding to a target coverage.
 #
-# 오차는 참값보다 클 수도 작을 수도 있으므로 양쪽 꼬리를 나누어 잡는다.
-# 따라서 95% 를 원하면 qnorm(0.975) 이며 qnorm(0.95) 가 아니다.
-# qnorm(0.95) 는 90% 에 해당하므로 이 함수를 쓰면 실수를 피할 수 있다.
+# The error can fall on either side of the true value, so the two tails are
+# split. A 95% bound is therefore qnorm(0.975), not qnorm(0.95), which gives 90%.
+# Using this function avoids that slip.
 
 k_for_coverage <- function(coverage) {
   qnorm(1 - (1 - coverage) / 2)
@@ -58,20 +59,20 @@ round(c(`90%` = k_for_coverage(0.90),
         `95%` = k_for_coverage(0.95),
         `97.5%` = k_for_coverage(0.975)), 5)
 
-# --- 확인 --------------------------------------------------------------------
+# --- check -------------------------------------------------------------------
 
-# 종풀 크기가 커져도 필요 종수는 n0 를 넘지 않는다.
+# However large the pool grows, the requirement never exceeds n0.
 data.frame(
   N = c(30, 100, 300, 500, 1000, 5000, 50000),
   n = n_species_needed(c(30, 100, 300, 500, 1000, 5000, 50000))
 ) |>
-  mutate(비율 = round(100 * n / N, 1))
+  mutate(percent = round(100 * n / N, 1))
 
-# 기준을 바꾸면 k 만 바꾸면 된다.
+# Changing the criterion means changing k and nothing else.
 data.frame(
   N = c(94, 388, 712),
   Hebert = n_species_needed(c(94, 388, 712)),
   p95 = n_species_needed(c(94, 388, 712), k = k_for_coverage(0.95))
 )
 
-message("04_formula.R 완료")
+message("04_formula.R done")
