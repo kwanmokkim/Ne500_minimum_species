@@ -85,7 +85,7 @@ the more stable choice when comparing taxa of different sizes.
 Points are obtained by sampling directly from the raw data with **no formula
 involved**, following the procedure of Hébert et al.(2026): build a species pool of
 size `N`, treat its mean as the true value, survey `n` of its species, and find
-the smallest `n` at which the error falls within tolerance. The red line is the
+the smallest `n` at which the error falls within tolerance. The red line is geenrated from the
 formula and dashed gray line is the asymptote.
 
 Fifty pool sizes from 30 to 5 000, three independent runs. Each pool size is
