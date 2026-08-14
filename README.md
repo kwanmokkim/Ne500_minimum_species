@@ -4,8 +4,17 @@
 A.4 — *the proportion of populations with an effective population size greater
 than 500* — at an acceptable level of accuracy?**
 
+Hebert et al. (2026) is currently the only paper that presents that range. We then felt the need to 
+present a mathematical formula that corroborates with the authors' approach and can return a continuous number(n; minimum species number) from the total species size (N).
+So the purpose of this github is to present a formula you can quickly use to get the n, from your N. 
+N is usually is total number of species (or number of species that can be evaluated e.g., National RedList species) in a particular taxa.
+For example, you have 500 species of birds recorded in your national list and 250 are actually listed in the National RedList. 
+Then, we would use 250 (N), and calculate the n, based on the formula presented below. 
+
 You do not need to run anything in this repository. Take the formula, or read the
-answer off the table below.
+answer off the table below. 
+
+n0 is 122.34 so plug in N(total species number) to get n (minimum number of species).
 
 ---
 
@@ -68,10 +77,10 @@ the more stable choice when comparing taxa of different sizes.
 ![Validation](figures/fig4a_validation.png)
 
 Points are obtained by sampling directly from the raw data with **no formula
-involved**, following the procedure of Hébert et al.: build a species pool of
+involved**, following the procedure of Hébert et al.(2026): build a species pool of
 size `N`, treat its mean as the true value, survey `n` of its species, and find
-the smallest `n` at which the error falls within tolerance. The line is the
-formula.
+the smallest `n` at which the error falls within tolerance. The red line is the
+formula and dashed gray line is the asymptote.
 
 Fifty pool sizes from 30 to 5 000, three independent runs. Mean difference −0.4
 to −0.7 species; 96–98 % of points agree within 2 species. The small offset is
@@ -83,9 +92,9 @@ the rounding up, which adds 0.52 species on average.
 
 ## Why this repository exists
 
-Hébert, Pollock and Hoban (2026, *Biological Conservation* 317: 111824) is the
+Hébert et al. (2026, *Biological Conservation*) is the
 only study that answers how much monitoring the Ne > 500 indicator needs. Their
-Fig. 6 reports the requirement in bins of 100 species: 56 % for pools under 100
+Fig. 6 and S7 reports the requirement in bins of 100 species or more: 56 % for pools under 100
 species, 31 % for pools around 200, 23 % for pools of 300 and above.
 
 Binned values are awkward to apply nationally. A pool of 299 species receives
@@ -96,8 +105,8 @@ be applied consistently.
 
 This repository derives the same requirement as a continuous function of pool
 size, using the same source data, the same criterion and the same tolerance as
-the original study. Continuous application was agreed with the corresponding
-author.
+the original study. However, instead of one national pool, to minimize errors we ran up to 20 rounds.
+Continuous application was agreed with the corresponding author.
 
 ---
 
@@ -306,6 +315,14 @@ Please cite the two underlying sources:
 > Mastretta-Yanes, A. et al. (2024) Multinational evaluation of genetic diversity
 > indicators for the Kunming-Montreal Global Biodiversity Framework.
 > *Ecology Letters* 27: e14461. Data: https://doi.org/10.5061/dryad.bk3j9kdkm
+
+## Acknowledgements
+
+The R scripts and this README were drafted with the assistance of Claude Opus 5
+(Anthropic), working from the source paper and its published code. The study
+design, the choice of criterion, the decision to derive a continuous formula, and
+the verification of every result were carried out by the author, who is
+responsible for the final content.
 
 ## Funding
 
