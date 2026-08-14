@@ -88,7 +88,7 @@ size `N`, treat its mean as the true value, survey `n` of its species, and find
 the smallest `n` at which the error falls within tolerance. The red line is geenrated from the
 formula and dashed gray line is the asymptote.
 
-Fifty pool sizes from 30 to 5 000, three independent runs. Each pool size is
+Fifty pool sizes from 30 to 5 000. Each pool size is
 drawn 20 times rather than once, so that the check reflects an average pool
 rather than whichever species happened to be drawn. Mean difference −0.4 to
 −0.7 species; 96–98 % of points agree within 2 species. The small offset is
