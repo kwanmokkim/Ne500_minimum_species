@@ -246,6 +246,14 @@ Please cite the two underlying sources:
 > indicators for the Kunming-Montreal Global Biodiversity Framework.
 > *Ecology Letters* 27: e14461. Data: https://doi.org/10.5061/dryad.bk3j9kdkm
 
+## Acknowledgements
+
+The R scripts and this README were drafted with the assistance of Claude
+(Anthropic), working from the source paper and its published code. The study
+design, the choice of criterion, the decision to derive a continuous formula, and
+the verification of every result were carried out by the author, who is
+responsible for the final content.
+
 ## Funding
 
 National Institute of Biological Resources (NIBR), Republic of Korea.
