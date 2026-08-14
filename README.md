@@ -5,7 +5,8 @@ A.4 — *the proportion of populations with an effective population size greater
 than 500* — at an acceptable level of accuracy?**
 
 You do not need to run anything in this repository. Take the formula, or read the
-answer off the table below.
+answer off the table below. n0 is 122.34 and plugging in your species size (e.g., N) 
+will give you the minimum species size (n) for Ne500 monitoring.
 
 ---
 
@@ -68,10 +69,10 @@ the more stable choice when comparing taxa of different sizes.
 ![Validation](figures/fig4a_validation.png)
 
 Points are obtained by sampling directly from the raw data with **no formula
-involved**, following the procedure of Hébert et al.: build a species pool of
+involved**, following the procedure of Hébert et al.. Build a species pool of
 size `N`, treat its mean as the true value, survey `n` of its species, and find
-the smallest `n` at which the error falls within tolerance. The line is the
-formula.
+the smallest `n` at which the error falls within tolerance. The red line is the
+formula and dashed gray line is the asymptote. 
 
 Fifty pool sizes from 30 to 5 000, three independent runs. Mean difference −0.4
 to −0.7 species; 96–98 % of points agree within 2 species. The small offset is
