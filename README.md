@@ -44,7 +44,6 @@ bound instead of theirs, use `k = 1.95996`.
 ## Read the answer off this table
 
 84% criterion uses the formula developed however, the results match that of Hebert et al. (2026).
-If you want less chance of error, you could consider using the 95%.
 
 | Species pool `N` | `n` (84 % criterion) | % | `n` (95 % criterion) | % |
 |---|---|---|---|---|
@@ -66,7 +65,11 @@ If you want less chance of error, you could consider using the 95%.
 | 5 000 | 120 | 2 % | 229 | 5 % |
 | 10 000 | 121 | 1 % | 234 | 2 % |
 
-The 84 % column matches the criterion used by Hébert et al. (2026); see
+Both columns come from the same formula; only the criterion constant `k` differs.
+The 84 % column reproduces the criterion of Hébert et al. (2026), so use it if you
+want numbers comparable to theirs. The 95 % column is stricter: the tolerated
+error is the same 0.05 either way, but it is exceeded 5 % of the time rather than
+16 %.; see
 [Assumptions](#assumptions) for why it is 84 % and not 95 %.
 
 **The count saturates near 123 species** however large the pool grows, while the
@@ -85,8 +88,10 @@ size `N`, treat its mean as the true value, survey `n` of its species, and find
 the smallest `n` at which the error falls within tolerance. The red line is the
 formula and dashed gray line is the asymptote.
 
-Fifty pool sizes from 30 to 5 000, three independent runs. Mean difference −0.4
-to −0.7 species; 96–98 % of points agree within 2 species. The small offset is
+Fifty pool sizes from 30 to 5 000, three independent runs. Each pool size is
+drawn 20 times rather than once, so that the check reflects an average pool
+rather than whichever species happened to be drawn. Mean difference −0.4 to
+−0.7 species; 96–98 % of points agree within 2 species. The small offset is
 the rounding up, which adds 0.52 species on average.
 
 ![Difference](figures/fig4b_validation_diff.png)
@@ -108,8 +113,7 @@ be applied consistently.
 
 This repository derives the same requirement as a continuous function of pool
 size, using the same source data, the same criterion and the same tolerance as
-the original study. However, instead of one national pool, to minimize errors we ran up to 20 rounds.
-Continuous application was agreed with the corresponding author.
+the original study. Continuous application was agreed with the corresponding author.
 
 ---
 
