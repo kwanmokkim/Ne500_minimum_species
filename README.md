@@ -8,7 +8,7 @@ Hebert et al. (2026) is currently the only paper that presents that range. We th
 present a mathematical formula that corroborates with the authors' approach and can return a continuous number(n; minimum species number) from the total species size (N).
 So the purpose of this github is to present a formula you can quickly use to get the n, from your N. 
 N is usually is total number of species (or number of species that can be evaluated e.g., National RedList species) in a particular taxa.
-For example, you have 500 species of birds recorded in your national list and 250 are actually listed in the National RedList. 
+For example, you have 500 species of birds recorded in your national list and 250 are actually given a status (EN, VU, LC) in the National RedList. 
 Then, we would use 250 (N), and calculate the n, based on the formula presented below. 
 
 You do not need to run anything in this repository. Take the formula, or read the
