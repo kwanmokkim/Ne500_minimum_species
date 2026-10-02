@@ -141,8 +141,11 @@ p4a <- ggplot() +
   coord_cartesian(ylim = c(15, 138)) +
   labs(x = "Species pool size (N), log scale",
        y = "Species to monitor (n)",
-       title = "(a) direct sampling (points) against the formula (line)") +
-  theme_ne500
+       title = "Direct sampling (points) against the formula (line)") +
+  theme_ne500+
+  theme(axis.title = element_text(size = 15),   # 축 제목: "Species pool size (N)..." 등
+        axis.text  = element_text(size = 12),
+        plot.title = element_text(size=15))   # 눈금 숫자: 30, 100, 1000 ...
 
 # (b) difference. Agreement means the points cluster near zero.
 p4b <- ggplot(mc, aes(x = N, y = difference)) +
