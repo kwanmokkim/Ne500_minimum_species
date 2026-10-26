@@ -113,7 +113,7 @@ be applied consistently.
 
 This repository derives the same requirement as a continuous function of pool
 size, using the same source data, the same criterion and the same tolerance as
-the original study. Continuous application was agreed with the corresponding author.
+the original study. Continuous application was agreed with the corresponding author. However, the derivation has not been reviewed by the original author yet. 
 
 ---
 
@@ -177,7 +177,7 @@ same quantity, and the formula computes it exactly, in one line, for any `N`.
 
 **σ, from the data.** The 583 species-level indicator values of Mastretta-Yanes
 et al. (2024b) have a standard deviation of 0.394826. All 583 values are used, so
-this is a measurement rather than an estimate.
+this is a measurement rather than an estimate (of 583 species set; applied to other pools it is a borrowed value). 
 
 ![Species-level indicator values](figures/fig1_histogram.png)
 
