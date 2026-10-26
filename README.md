@@ -103,11 +103,11 @@ the rounding up, which adds 0.52 species on average.
 Hébert et al. (2026, *Biological Conservation*) is the
 only study that answers how much monitoring the Ne > 500 indicator needs. Their
 Fig. 6 and S7 reports the requirement in bins of 100 species or more: 56 % for pools under 100
-species, 31 % for pools around 200, 23 % for pools of 300 and above.
+species, 31 % for pools of 100 to 299, 23 % for pools of 300 and above.
 
 Binned values are awkward to apply nationally. A pool of 299 species receives
 31 % and a pool of 301 species receives 23 %, an eight point gap for a two
-species difference. No value is shown for pools between 100 and 200 species.
+species difference. Each binned value is the smallest proportion that passed anywhere within the bin, so it is set by the largest pools in that bin. Smaller pools in the same bin are given fewer species than they need: a pool of 30 species would monitor 17 (56%), whereas the criterion requires 25. 
 Korea's eleven taxonomic groups range from 30 to 712 species, so five bars cannot
 be applied consistently.
 
